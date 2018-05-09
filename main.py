@@ -2,31 +2,41 @@
     Date: 07 May 2018
     Author: Kartik Sharma
 """
+
 from UI.dialogs import UIdialog 
 from lib import grayscale, flip, _filter, _rotation
 from tkinter import *
 from tkinter import ttk
 from PIL import Image, ImageTk
 import threading
-from multiprocessing.pool import ThreadPool
+import copy
+#from multiprocessing.pool import ThreadPool
 from random import choice
 
+#constants
 FILTERS = ("BLUR","CONTOUR","DETAIL","EDGE_ENHANCE","EDGE_ENHANCE_MORE","EMBOSS","FIND_EDGES","SHARPEN","SMOOTH","SMOOTH_MORE")
-DEGREES = ("ROTATE_45","ROTATE_90","ROTATE_135")
+DEGREES = ("ROTATE_30","ROTATE_45","ROTATE_90","ROTATE_135","ROTATE_180","ROTATE_225","ROTATE_270")
 
 class KedClient:
     
     def __init__(self):
         self.root = Tk()
 
-        self.image = Image.open("./test_images/quote.png")
-        self.image_copy = self.image.copy()
-        self.image_copy = self.image_copy.resize((800, 500), Image.ANTIALIAS)
+        #stack to store every edit so users can undo
+        self.stack = []
+
+        self.default_image = None
+        self.default_image_copy = None
+
+        self.init_default_image()
+        print(self.stack)
+
+        #widgets textVariables
         self.filter_var = StringVar()
         self.rotation_var = StringVar()
-        self.stack = [self.image_copy]
+
         #initializing tkinter widgets
-        self.init_widgets(self.image_copy)
+        self.init_widgets(self.default_image_copy)
         #adding widgets to grid
         self.add_widgets_to_frame()
         
@@ -36,6 +46,34 @@ class KedClient:
         self.root.resizable(width=False, height=False)
 
         self.root.mainloop()
+
+    def init_default_image(self):
+        self.setDefaultImage("./test_images/quote.png")
+        self.default_image_copy = self.make_image_copy(self.default_image,None)
+        #resizing image to fit picture panel
+        self.default_image_copy = self.resize_image(self.default_image_copy,800,500)
+
+    def setDefaultImage(self,path):
+        """method to set default image in picture panel """
+        self.default_image = Image.open(path)
+        self.stack.append(self.default_image)
+
+    def make_image_copy(self,image,image_filename):
+        """method to make image copy"""
+        if image == None:
+            image_copy = Image.open(image_filename).copy()
+        else:
+            image_copy = image.copy()
+
+        return image_copy
+
+    def resize_image(self,image,*args):
+        """method to resize image
+           param - args : (width,height) 
+        """
+        # print(args)
+        resized_image = image.resize(args, Image.ANTIALIAS)
+        return resized_image
 
     def init_widgets(self,image):
         """function to initialize Ked widgets"""
@@ -88,51 +126,87 @@ class KedClient:
 
     def file_dialog_handler(self):
         """method to handle open image dialog"""
-        image = UIdialog.open_file_dialog()
-        self.image_copy = image
-        self.update_picture_panel(self.image_copy)
+        #opening image
+        image_filename = UIdialog.open_file_dialog()
+        #making image copy
+        image_copy     = self.make_image_copy(None,image_filename)
+        #appending newly opened image to stack
+        self.stack.append(image_copy)
+        #resizing image to fit picture panel
+        image_copy     = self.resize_image(image_copy,800,500)
+        #updating picture panel
+        self.update_picture_panel(image_copy)
 
     def grayscale_button_handler(self):
         def callback():
             self.message_label.grid()
-            self.image_copy = grayscale.convert_to_grayscale(self.image_copy)
-            self.update_picture_panel(self.image_copy)
+            image = self.stack[len(self.stack)-1]
+            image_copy = self.make_image_copy(image, None)
+            image_copy = grayscale.convert_to_grayscale(image_copy)
+            # print(image_copy)
+            self.stack.append(image_copy)
+            image_copy = self.resize_image(image_copy,800,500)
+            self.update_picture_panel(image_copy)
             self.message_label.grid_forget()
+            print("After converting to grayscale")
+            print(str(self.stack))
         thread = threading.Thread(target=callback)
         thread.start()
-        self.stack.append(self.image_copy)
-        print(str(self.stack))    
+            
     
     def flip_button_handler(self):
-        self.image_copy = flip.flip_image(self.image_copy)
-        self.update_picture_panel(self.image_copy)
-        self.stack.append(self.image_copy)     
+        image = self.stack[len(self.stack)-1]
+        image_copy = self.make_image_copy(image, None)
+        image_copy = flip.flip_image(image_copy)
+        self.stack.append(image_copy)
+        image_copy = self.resize_image(image_copy,800,500)
+        self.update_picture_panel(image_copy)
+        print("After Flipping")
         print(str(self.stack))    
 
     def filter_combobox_event_handler(self):
-        self.rotation_combobox.set("")
         filter_name = str(self.filter_combobox.get())
-        image_copy  = _filter.apply_filter(self.image_copy,filter_name)
+        image       = self.stack[len(self.stack)-1]
+        image_copy  = self.make_image_copy(image, None)   
+        image_copy  = _filter.apply_filter(image_copy,filter_name)
+        self.stack.append(image_copy)
+        image_copy  = self.resize_image(image_copy,800,500)
         self.update_picture_panel(image_copy)
+        print("After applying filter")
+        print(str(self.stack))
 
     def rotation_combobox_event_handler(self):
-        self.filter_combobox.set("")
         degrees = str(self.rotation_combobox.get())
-        image_copy = _rotation.apply_rotation(self.image_copy,degrees)
+        image   = self.stack[len(self.stack)-1]
+        image_copy = self.make_image_copy(image,None)
+        image_copy = _rotation.apply_rotation(image_copy,degrees)
+        self.stack.append(image_copy)
+        image_copy  = self.resize_image(image_copy,800,500) 
         self.update_picture_panel(image_copy)
+        print("After Rotating")
+        print(str(self.stack))
 
     def image_info_button_handler(self):
-        UIdialog.show_image_info_dialog(self.image_copy)
+        UIdialog.show_image_info_dialog(self.stack[len(self.stack)-1])
 
     def undo_button_handler(self):
-        self.stack.pop()
-        print(str(self.stack))    
-        # self.update_picture_panel(self.stack[len(self.stack)-1])
+        """method to undo changes done to image"""
+        if(len(self.stack) > 1):
+            self.stack.pop()
+            print(str(self.stack))
+            image = self.stack[len(self.stack)-1]
+            image_copy = self.make_image_copy(image,None)
+            image_copy = self.resize_image(image_copy,800,500)
+            self.update_picture_panel(image_copy)
+            print("After Undoing")
+            print(str(self.stack))
+        else:
+            UIdialog.show_error_edit_image_first()
         # print("undo clicked")
         
-    def update_picture_panel(self,image_copy):
+    def update_picture_panel(self,image):
         """method to update picture in picture panel"""
-        self.picture = ImageTk.PhotoImage(image_copy)        
+        self.picture = ImageTk.PhotoImage(image)        
         self.picture_panel.configure(image=self.picture)
         self.picture_panel.photo = self.picture
 
