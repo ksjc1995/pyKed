@@ -10,6 +10,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import threading
 import copy
+import datetime
 #from multiprocessing.pool import ThreadPool
 from random import choice
 
@@ -49,7 +50,7 @@ class KedClient:
         self.root.mainloop()
 
     def init_default_image(self):
-        self.setDefaultImage("./test_images/quote.png")
+        self.setDefaultImage("./test_images/touka.png")
         self.default_image_copy = self.make_image_copy(self.default_image,None)
         #resizing image to fit picture panel
         self.default_image_copy = self.resize_image(self.default_image_copy,800,500)
@@ -102,8 +103,8 @@ class KedClient:
         
         self.image_info_button = ttk.Button(self.menu_frame, text="Image Info", command=lambda:self.image_info_button_handler())
         self.undo_button       = ttk.Button(self.menu_frame, text="Undo",command=lambda:self.undo_button_handler())
-        self.open_file_button  = ttk.Button(self.menu_frame, text="Open Image", command=lambda: self.file_dialog_handler())
-        
+        self.open_file_button  = ttk.Button(self.menu_frame, text="Open", command=lambda: self.file_dialog_handler())
+        self.save_file_button  = ttk.Button(self.menu_frame, text="Save", command=lambda: self.save_file_handler())
         #message labels
         self.message_label = ttk.Label(self.picture_container, text="Converting...")
 
@@ -122,21 +123,9 @@ class KedClient:
         self.image_info_button.grid(column=6, row=0, padx=5, pady=5)
         self.undo_button.grid(column=7, row=0, padx=5, pady=5)
         self.open_file_button.grid(row=1,column=0,padx=5,pady=5) 
+        self.save_file_button.grid(row=1,column=1,padx=5,pady=5)
         self.message_label.grid(row=0,column=0)      
         self.message_label.grid_forget()
-
-    def file_dialog_handler(self):
-        """method to handle open image dialog"""
-        #opening image
-        image_filename = UIdialog.open_file_dialog()
-        #making image copy
-        image_copy     = self.make_image_copy(None,image_filename)
-        #appending newly opened image to stack
-        self.stack.append(image_copy)
-        #resizing image to fit picture panel
-        image_copy     = self.resize_image(image_copy,800,500)
-        #updating picture panel
-        self.update_picture_panel(image_copy)
 
     def grayscale_button_handler(self):
         def callback():
@@ -163,8 +152,7 @@ class KedClient:
         image_copy = self.resize_image(image_copy,800,500)
         self.update_picture_panel(image_copy)
         print("After Flipping")
-        print(str(self.stack))
-        self.message_label.grid_forget()    
+        print(str(self.stack))    
 
     def filter_combobox_event_handler(self):
         def callback():
@@ -178,6 +166,8 @@ class KedClient:
             self.update_picture_panel(image_copy)
             print("After applying filter")
             print(str(self.stack))
+            self.message_label.grid_forget()
+
         thread = threading.Thread(target=callback)
         thread.start()    
         
@@ -210,7 +200,32 @@ class KedClient:
         else:
             UIdialog.show_error_edit_image_first()
         # print("undo clicked")
-        
+    
+    def file_dialog_handler(self):
+        """method to handle open image dialog"""
+        #opening image
+        image_filename = UIdialog.open_file_dialog()
+        #making image copy
+        image_copy     = self.make_image_copy(None,image_filename)
+        #appending newly opened image to stack
+        self.stack.append(image_copy)
+        #resizing image to fit picture panel
+        image_copy     = self.resize_image(image_copy,800,500)
+        #updating picture panel
+        self.update_picture_panel(image_copy)
+
+
+    def save_file_handler(self):
+        """method for saving file"""
+        def callback():
+            image = self.stack[len(self.stack)-1]
+            timestamp = str(int(datetime.datetime.now().timestamp()))
+            file  = "./test_images/IMG" + timestamp 
+            image.save(file + ".png")
+            print("File save successfully!")
+        thread = threading.Thread(target=callback)
+        thread.start()
+
     def update_picture_panel(self,image):
         """method to update picture in picture panel"""
         self.picture = ImageTk.PhotoImage(image)        
