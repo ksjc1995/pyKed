@@ -45,6 +45,7 @@ class KedClient:
         #fixing root window size
         self.root.resizable(width=False, height=False)
 
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.mainloop()
 
     def init_default_image(self):
@@ -210,9 +211,14 @@ class KedClient:
         self.picture_panel.configure(image=self.picture)
         self.picture_panel.photo = self.picture
 
+    def on_closing(self):
+        self.stack.clear()
+        print(self.stack)
+        del self.stack[:]
+        self.root.destroy()
 
 if __name__ == "__main__":
     # thread = threading.Thread(target=KedClient())
     # thread.start()
     client = KedClient()
-   
+
