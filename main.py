@@ -163,18 +163,24 @@ class KedClient:
         image_copy = self.resize_image(image_copy,800,500)
         self.update_picture_panel(image_copy)
         print("After Flipping")
-        print(str(self.stack))    
+        print(str(self.stack))
+        self.message_label.grid_forget()    
 
     def filter_combobox_event_handler(self):
-        filter_name = str(self.filter_combobox.get())
-        image       = self.stack[len(self.stack)-1]
-        image_copy  = self.make_image_copy(image, None)   
-        image_copy  = _filter.apply_filter(image_copy,filter_name)
-        self.stack.append(image_copy)
-        image_copy  = self.resize_image(image_copy,800,500)
-        self.update_picture_panel(image_copy)
-        print("After applying filter")
-        print(str(self.stack))
+        def callback():
+            self.message_label.grid()
+            filter_name = str(self.filter_combobox.get())
+            image       = self.stack[len(self.stack)-1]
+            image_copy  = self.make_image_copy(image, None)   
+            image_copy  = _filter.apply_filter(image_copy,filter_name)
+            self.stack.append(image_copy)
+            image_copy  = self.resize_image(image_copy,800,500)
+            self.update_picture_panel(image_copy)
+            print("After applying filter")
+            print(str(self.stack))
+        thread = threading.Thread(target=callback)
+        thread.start()    
+        
 
     def rotation_combobox_event_handler(self):
         degrees = str(self.rotation_combobox.get())
@@ -212,6 +218,7 @@ class KedClient:
         self.picture_panel.photo = self.picture
 
     def on_closing(self):
+        """method to clear stack when window is closed"""
         self.stack.clear()
         print(self.stack)
         del self.stack[:]
