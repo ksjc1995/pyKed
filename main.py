@@ -4,7 +4,7 @@
 """
 
 from UI.dialogs import UIdialog 
-from lib import grayscale, flip, _filter, _rotation
+from lib import grayscale, flip, _filter, _rotation, _enhance
 from tkinter import *
 from tkinter import ttk
 from PIL import Image, ImageTk
@@ -83,28 +83,47 @@ class KedClient:
 
         #widgets for picture preview
         self.picture           = ImageTk.PhotoImage(image)
-        self.picture_container = ttk.Frame(self.content, width=800, height=500, borderwidth=2,relief="sunken")
+        self.picture_container = ttk.Frame(self.content, width=850, height=500, borderwidth=2,relief="sunken")
         self.picture_panel     = ttk.Label(self.picture_container, image=self.picture)
         
         #menu widgets
         self.menu_frame        = ttk.Frame(self.content)
+        self.menu_frame_right  = ttk.Frame(self.content)
         self.grayscale_button  = ttk.Button(self.menu_frame, text="Grayscale",command=lambda:self.grayscale_button_handler())
         self.flip_button       = ttk.Button(self.menu_frame, text="Flip", command=lambda:self.flip_button_handler())
         
+        # image enhancing buttons
+        self.brightness_label  = ttk.Label(self.menu_frame_right,text="Brightness")
+        self.brightness_button_inc = ttk.Button(self.menu_frame_right, text="+",command=lambda:self.brightness_button_inc_handler(),width=2)
+        self.brightness_button_dec = ttk.Button(self.menu_frame_right, text="-",command=lambda:self.brightness_button_dec_handler(),width=2)
+        
+        self.color_balance_label  = ttk.Label(self.menu_frame_right,text="Colorbalance")
+        self.color_balance_button_inc = ttk.Button(self.menu_frame_right, text="+",command=lambda:self.color_balance_button_inc_handler(),width=2)
+        self.color_balance_button_dec = ttk.Button(self.menu_frame_right, text="-",command=lambda:self.color_balance_button_dec_handler(),width=2)
+        
+        self.sharpness_label  = ttk.Label(self.menu_frame_right,text="Sharpness")
+        self.sharpness_button_inc = ttk.Button(self.menu_frame_right, text="+",command=lambda:self.sharpness_button_inc_handler(),width=2)
+        self.sharpness_button_dec = ttk.Button(self.menu_frame_right, text="-",command=lambda:self.sharpness_button_dec_handler(),width=2)
+        
+        self.contrast_label  = ttk.Label(self.menu_frame_right,text="Contrast")
+        self.contrast_button_inc = ttk.Button(self.menu_frame_right, text="+",command=lambda:self.contrast_button_inc_handler(),width=2)
+        self.contrast_button_dec = ttk.Button(self.menu_frame_right, text="-",command=lambda:self.contrast_button_dec_handler(),width=2)
+        
         #comboboxes
-        self.filter_label      = ttk.Label(self.menu_frame, text="Filters: ")
-        self.filter_combobox   = ttk.Combobox(self.menu_frame, textvariable=self.filter_var, state='readonly')
+        self.filter_label = ttk.Label(self.menu_frame, text="Filters: ")
+        self.filter_combobox = ttk.Combobox(self.menu_frame, textvariable=self.filter_var, state='readonly',width=19)
         self.filter_combobox.bind('<<ComboboxSelected>>',lambda e: self.filter_combobox_event_handler())
         self.filter_combobox['values'] = FILTERS
-        self.rotation_label      = ttk.Label(self.menu_frame, text="Rotate: ")
-        self.rotation_combobox   = ttk.Combobox(self.menu_frame, textvariable=self.rotation_var, state='readonly')
+        self.rotation_label = ttk.Label(self.menu_frame, text="Rotate: ")
+        self.rotation_combobox = ttk.Combobox(self.menu_frame, textvariable=self.rotation_var, state='readonly',width=19)
         self.rotation_combobox.bind('<<ComboboxSelected>>',lambda e1: self.rotation_combobox_event_handler())
         self.rotation_combobox['values'] = DEGREES
+           
         
         self.image_info_button = ttk.Button(self.menu_frame, text="Image Info", command=lambda:self.image_info_button_handler())
         self.undo_button       = ttk.Button(self.menu_frame, text="Undo",command=lambda:self.undo_button_handler())
-        self.open_file_button  = ttk.Button(self.menu_frame, text="Open", command=lambda: self.file_dialog_handler())
-        self.save_file_button  = ttk.Button(self.menu_frame, text="Save", command=lambda: self.save_file_handler())
+        self.open_file_button  = ttk.Button(self.menu_frame_right, text="Open", command=lambda: self.file_dialog_handler())
+        self.save_file_button  = ttk.Button(self.menu_frame_right, text="Save", command=lambda: self.save_file_handler())
         #message labels
         self.message_label = ttk.Label(self.picture_container, text="Converting...")
 
@@ -113,17 +132,35 @@ class KedClient:
         self.content.grid(column=0, row=0)
         self.picture_container.grid(column=0, row=0, padx=5, pady=5)
         self.picture_panel.grid(column=0, row=0, padx=2, pady=2, sticky="nsew")
-        self.menu_frame.grid(column=0, row=1, padx=5, pady=5, sticky="w")
+        self.menu_frame.grid(column=0, row=1, padx=0, pady=5, sticky="w")
+        self.menu_frame_right.grid(column=1, row=0, padx=0, pady=5, sticky="n")
         self.grayscale_button.grid(column=0, row=0, padx=5, pady=5)
         self.flip_button.grid(column=1, row=0, padx=5, pady=5)
         self.filter_label.grid(column=2, row=0, pady=5)
-        self.filter_combobox.grid(column=3, row=0, padx=5, pady=5)
+        self.filter_combobox.grid(column=3, row=0, padx=5, pady=5, columnspan=1)
         self.rotation_label.grid(column=4, row=0, pady=5)
         self.rotation_combobox.grid(column=5, row=0, padx=5, pady=5)
         self.image_info_button.grid(column=6, row=0, padx=5, pady=5)
         self.undo_button.grid(column=7, row=0, padx=5, pady=5)
-        self.open_file_button.grid(row=1,column=0,padx=5,pady=5) 
-        self.save_file_button.grid(row=1,column=1,padx=5,pady=5)
+
+        self.brightness_label.grid(row=0,column=1,padx=5,pady=5,sticky="w")
+        self.brightness_button_inc.grid(row=0,column=2,padx=5,pady=5,sticky="w")
+        self.brightness_button_dec.grid(row=0,column=3,padx=5,pady=5,sticky="w")
+        
+        self.color_balance_label.grid(row=1,column=1,padx=5,pady=5,sticky="w")
+        self.color_balance_button_inc.grid(row=1,column=2,padx=5,pady=5,sticky="w")
+        self.color_balance_button_dec.grid(row=1,column=3,padx=5,pady=5,sticky="w")
+
+        self.sharpness_label.grid(row=2,column=1,padx=5,pady=5,sticky="w")
+        self.sharpness_button_inc.grid(row=2,column=2,padx=5,pady=5,sticky="w")
+        self.sharpness_button_dec.grid(row=2,column=3,padx=5,pady=5,sticky="w")
+
+        self.contrast_label.grid(row=3,column=1,padx=5,pady=5,sticky="w")
+        self.contrast_button_inc.grid(row=3,column=2,padx=5,pady=5,sticky="w")
+        self.contrast_button_dec.grid(row=3,column=3,padx=5,pady=5,sticky="w")
+        
+        self.open_file_button.grid(row=4,column=1,padx=5,pady=20,columnspan=3) 
+        self.save_file_button.grid(row=5,column=1,padx=5,pady=20,columnspan=3)
         self.message_label.grid(row=0,column=0)      
         self.message_label.grid_forget()
 
@@ -185,6 +222,26 @@ class KedClient:
 
     def image_info_button_handler(self):
         UIdialog.show_image_info_dialog(self.stack[len(self.stack)-1])
+
+    def brightness_button_inc_handler(self):
+        pass
+    def brightness_button_dec_handler(self):
+        pass    
+    
+    def color_balance_button_inc_handler(self):
+        pass
+    def color_balance_button_dec_handler(self):
+        pass
+
+    def sharpness_button_inc_handler(self):
+        pass
+    def sharpness_button_dec_handler(self):
+        pass
+    
+    def contrast_button_inc_handler(self):
+        pass
+    def contrast_button_dec_handler(self):
+        pass
 
     def undo_button_handler(self):
         """method to undo changes done to image"""
