@@ -2,20 +2,16 @@ from PIL import ImageEnhance
 
 def contrast(image,val):
     _image = ImageEnhance.Contrast(image)
-    _image.enhance(val)
-    return _image
+    return _image.enhance(val)
 
 def brightness(image,val):
     _image = ImageEnhance.Brightness(image)
-    _image.enhance(val)
-    return _image
+    return _image.enhance(val)
 
 def color_balance(image,val):
     _image = ImageEnhance.Color(image)
-    _image.enhance(val)
-    return _image
+    return _image.enhance(val)
 
 def sharpness(image,val):
     _image = ImageEnhance.Sharpness(image)
-    _image.enhance(val)
-    return _image
+    return  _image.enhance(val)

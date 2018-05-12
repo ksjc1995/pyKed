@@ -26,6 +26,14 @@ class KedClient:
         #stack to store every edit so users can undo
         self.stack = []
 
+        #image enhancement variables
+        self.image_enhance_min_value = 0.0
+        self.image_enhance_max_value = 2.0
+        self.image_brightness = 1.0
+        self.image_color_balance = 1.0
+        self.image_sharpness = 1.0
+        self.image_contrast = 1.0
+
         self.default_image = None
         self.default_image_copy = None
 
@@ -223,25 +231,296 @@ class KedClient:
     def image_info_button_handler(self):
         UIdialog.show_image_info_dialog(self.stack[len(self.stack)-1])
 
-    def brightness_button_inc_handler(self):
-        pass
+    def brightness_button_inc_handler(self): 
+        if self.image_brightness < self.image_enhance_max_value:
+            if(self.image_brightness < 1.0):
+                self.image_brightness += 0.1
+                self.image_brightness = round(self.image_brightness,1)
+                print("Brightness: {}".format(self.image_brightness))
+                #pop
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:    
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and inc it by 0.1
+                self.image_brightness = self.image_brightness + 0.1
+                self.image_brightness = round(self.image_brightness,1)
+                #make image copy
+                print("Brightness: {}".format(self.image_brightness))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.brightness(image_copy,self.image_brightness)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After Increasing brightness")
+                # print(str(self.stack))
+        else:
+            print("Image brightness is maximum")
+
     def brightness_button_dec_handler(self):
-        pass    
-    
+        if self.image_brightness > self.image_enhance_min_value:
+            if(self.image_brightness > 1.0):
+                self.image_brightness -= 0.1
+                self.image_brightness = round(self.image_brightness,1)
+                print("Brightness: {}".format(self.image_brightness))
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and dec it by 0.1
+                self.image_brightness = self.image_brightness - 0.1
+                self.image_brightness = round(self.image_brightness,1)
+                #make image copy
+                print("Brightness: {}".format(self.image_brightness))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.brightness(image_copy,self.image_brightness)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After decreasing brightness")
+                # print(str(self.stack))
+        else:
+            # self.can_be_dec = False
+            print("Image brightness is minimum") 
+
     def color_balance_button_inc_handler(self):
-        pass
+        if self.image_color_balance < self.image_enhance_max_value:
+            if(self.image_color_balance < 1.0):
+                self.image_color_balance += 0.1
+                self.image_color_balance = round(self.image_color_balance,1)
+                print("Color_balance: {}".format(self.image_color_balance))
+                #pop
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:    
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and inc it by 0.1
+                self.image_color_balance = self.image_color_balance + 0.1
+                self.image_color_balance = round(self.image_color_balance,1)
+                #make image copy
+                print("Color_balance: {}".format(self.image_color_balance))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.color_balance(image_copy,self.image_color_balance)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After Increasing brightness")
+                # print(str(self.stack))
+        else:
+            print("Image color_balance is maximum")
+
     def color_balance_button_dec_handler(self):
-        pass
+        if self.image_color_balance > self.image_enhance_min_value:
+            if(self.image_color_balance > 1.0):
+                self.image_color_balance -= 0.1
+                self.image_color_balance = round(self.image_color_balance,1)
+                print("Color_balance: {}".format(self.image_color_balance))
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and dec it by 0.1
+                self.image_color_balance = self.image_color_balance - 0.1
+                self.image_color_balance = round(self.image_color_balance,1)
+                #make image copy
+                print("Color_balance: {}".format(self.image_color_balance))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.color_balance(image_copy,self.image_color_balance)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After decreasing brightness")
+                # print(str(self.stack))
+        else:
+            # self.can_be_dec = False
+            print("Image color_balance is minimum") 
+
 
     def sharpness_button_inc_handler(self):
-        pass
+        if self.image_sharpness < self.image_enhance_max_value:
+            if(self.image_sharpness < 1.0):
+                self.image_sharpness += 0.1
+                self.image_sharpness = round(self.image_sharpness,1)
+                print("Sharpness: {}".format(self.image_sharpness))
+                #pop
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:    
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and inc it by 0.1
+                self.image_sharpness = self.image_sharpness + 0.1
+                self.image_sharpness = round(self.image_sharpness,1)
+                #make image copy
+                print("Sharpness: {}".format(self.image_sharpness))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.sharpness(image_copy,self.image_sharpness)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After Increasing brightness")
+                # print(str(self.stack))
+        else:
+            print("Image sharpness is maximum")
+
     def sharpness_button_dec_handler(self):
-        pass
+        if self.image_sharpness > self.image_enhance_min_value:
+            if(self.image_sharpness > 1.0):
+                self.image_sharpness -= 0.1
+                self.image_sharpness = round(self.image_sharpness,1)
+                print("Sharpness: {}".format(self.image_sharpness))
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and dec it by 0.1
+                self.image_sharpness = self.image_sharpness - 0.1
+                self.image_sharpness = round(self.image_sharpness,1)
+                #make image copy
+                print("Sharpness: {}".format(self.image_sharpness))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.sharpness(image_copy,self.image_sharpness)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After decreasing brightness")
+                # print(str(self.stack))
+        else:
+            # self.can_be_dec = False
+            print("Image sharpness is minimum") 
+
     
     def contrast_button_inc_handler(self):
-        pass
+        if self.image_contrast < self.image_enhance_max_value:
+            if(self.image_contrast < 1.0):
+                self.image_contrast += 0.1
+                self.image_contrast = round(self.image_contrast,1)
+                print("Contrast: {}".format(self.image_contrast))
+                #pop
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:    
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and inc it by 0.1
+                self.image_contrast = self.image_contrast + 0.1
+                self.image_contrast = round(self.image_contrast,1)
+                #make image copy
+                print("Contrast: {}".format(self.image_contrast))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.contrast(image_copy,self.image_contrast)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After Increasing brightness")
+                # print(str(self.stack))
+        else:
+            print("Image contrast is maximum")
+
     def contrast_button_dec_handler(self):
-        pass
+        if self.image_contrast > self.image_enhance_min_value:
+            if(self.image_contrast > 1.0):
+                self.image_contrast -= 0.1
+                self.image_contrast = round(self.image_contrast,1)
+                print("Contrast: {}".format(self.image_contrast))
+                self.stack.pop()
+                # print(str(self.stack))
+                image = self.stack[len(self.stack)-1]
+                image_copy = self.make_image_copy(image,None)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # print("After Undoing")
+                # print(str(self.stack))
+            else:
+                # get image from stack
+                image = self.stack[len(self.stack)-1]
+                # calculate current image brighness and dec it by 0.1
+                self.image_contrast = self.image_contrast - 0.1
+                self.image_contrast = round(self.image_contrast,1)
+                #make image copy
+                print("Contrast: {}".format(self.image_contrast))
+                image_copy = self.make_image_copy(image,None)
+                #enhance image brightness
+                image_copy = _enhance.contrast(image_copy,self.image_contrast)
+                #update stack
+                self.stack.append(image_copy)
+                image_copy = self.resize_image(image_copy,800,500)
+                self.update_picture_panel(image_copy)
+                # #for testing purposes
+                # print("After decreasing brightness")
+                # print(str(self.stack))
+        else:
+            # self.can_be_dec = False
+            print("Image contrast is minimum") 
+
 
     def undo_button_handler(self):
         """method to undo changes done to image"""
@@ -252,14 +531,22 @@ class KedClient:
             image_copy = self.make_image_copy(image,None)
             image_copy = self.resize_image(image_copy,800,500)
             self.update_picture_panel(image_copy)
-            print("After Undoing")
-            print(str(self.stack))
+            # print("After Undoing")
+            # print(str(self.stack))
         else:
             UIdialog.show_error_edit_image_first()
         # print("undo clicked")
     
     def file_dialog_handler(self):
         """method to handle open image dialog"""
+        #clear stack
+        self.stack.clear()
+        #reset image enhance variables
+        self.image_brightness = 1.0
+        self.image_color_balance = 1.0
+        self.image_sharpness = 1.0
+        self.image_contrast = 1.0
+
         #opening image
         image_filename = UIdialog.open_file_dialog()
         #making image copy
